@@ -1,8 +1,7 @@
 # Apache Tika vs Docling: Extração de Documentos em Pipelines de Dados no GCP
 
-**Por:** Engenharia de Dados  
-**Instituição:** Setor de Inteligência — Controladoria Geral do Estado de Mato Grosso (CGE-MT)  
-**Finalidade:** Estudo de solução para definição da melhor abordagem de extração de documentos a ser implementada no Setor de Inteligência da CGE-MT  
+**Autor:** Giovanny Montinny — Desenvolvedor Técnico de Inteligência de Dados  
+**Finalidade:** Estudo técnico elaborado como desafio pessoal para identificar a melhor abordagem de extração de documentos em pipelines de dados modernos  
 **Ambiente:** Google Cloud Platform (GCP) com Apache Spark e Apache Airflow  
 **Contexto:** Pipelines de ingestão em Data Lake para grandes volumes e ambientes vetoriais
 
@@ -10,17 +9,17 @@
 
 ## 1. Introdução
 
-A Controladoria Geral do Estado de Mato Grosso (CGE-MT), por meio do seu Setor de Inteligência, tem como missão transformar grandes volumes de documentos institucionais em informação estruturada e acionável — contratos, relatórios de auditoria, prestações de contas, notas fiscais, pareceres técnicos e demais documentos do ciclo de controle interno do Estado.
+Como desenvolvedor técnico na área de Inteligência de Dados, Giovanny Montinny se deparou com um desafio recorrente em pipelines de dados institucionais: como extrair conteúdo de documentos não estruturados — contratos, relatórios de auditoria, prestações de contas, notas fiscais, pareceres técnicos — de forma confiável, escalável e com qualidade suficiente para alimentar sistemas de inteligência artificial?
 
-Para viabilizar essa transformação em escala, é necessário definir a melhor abordagem tecnológica para extração de conteúdo de documentos não estruturados. Este estudo foi conduzido para embasar essa decisão, comparando duas tecnologias — **Apache Tika** e **Docling** — em um cenário real de Data Lake no GCP, orquestrado com Apache Airflow e processado com Apache Spark.
+Esse desafio motivou este estudo comparativo entre duas tecnologias amplamente usadas — **Apache Tika** e **Docling** — avaliadas em um cenário real de Data Lake no GCP, orquestrado com Apache Airflow e processado com Apache Spark.
 
-A escolha da ferramenta de extração impacta diretamente três dimensões críticas para o Setor de Inteligência:
+A escolha da ferramenta de extração impacta diretamente três dimensões críticas:
 
-- **Qualidade do dado** — o texto extraído representa fielmente o conteúdo original do documento público?
-- **Custo operacional** — o pipeline escala sem comprometer o orçamento de TI do Estado?
-- **Utilidade downstream** — o texto extraído serve bem para vetorização, RAG e assistentes de inteligência artificial?
+- **Qualidade do dado** — o texto extraído representa fielmente o conteúdo original do documento?
+- **Custo operacional** — o pipeline escala sem comprometer o orçamento de infraestrutura?
+- **Utilidade downstream** — o texto extraído serve bem para vetorização, RAG e LLMs?
 
-Este artigo cobre tanto pipelines de alto volume quanto ambientes de inteligência artificial com vetorização, apresentando uma arquitetura de referência aplicável ao contexto da CGE-MT.
+Este artigo cobre tanto pipelines de alto volume quanto ambientes de inteligência artificial com vetorização, apresentando uma arquitetura de referência aplicável a contextos institucionais que lidam com grandes volumes de documentos públicos.
 
 ---
 
@@ -378,20 +377,20 @@ Não existe uma resposta única para "qual é melhor". A escolha depende do perf
 - O domínio é financeiro, jurídico ou técnico — onde perder uma tabela é inaceitável
 - O chunking inteligente por seção é necessário para melhorar o retrieval
 
-**Recomendação para a CGE-MT:**
+**Recomendação para pipelines institucionais com documentos complexos:**
 
-O perfil documental da Controladoria — contratos, relatórios de auditoria, prestações de contas, notas fiscais, pareceres técnicos — é predominantemente composto por documentos com tabelas de dados, valores monetários, índices e estruturas hierárquicas. Esse é exatamente o cenário onde o Docling demonstrou superar o Tika em até 53% na quantidade de conteúdo extraído, além de preservar a estrutura semântica das tabelas.
+O perfil documental típico de áreas de inteligência de dados — contratos, relatórios de auditoria, prestações de contas, notas fiscais, pareceres técnicos — é predominantemente composto por documentos com tabelas de dados, valores monetários, índices e estruturas hierárquicas. Esse é exatamente o cenário onde o Docling demonstrou superar o Tika em até 53% na quantidade de conteúdo extraído, além de preservar a estrutura semântica das tabelas.
 
-A arquitetura recomendada para o Setor de Inteligência da CGE-MT é o **roteador inteligente híbrido**:
+A arquitetura recomendada por Giovanny Montinny, fruto deste estudo, é o **roteador inteligente híbrido**:
 
 1. Um classificador leve (Cloud Function no GCP) analisa o arquivo antes da extração
 2. Documentos simples com texto nativo → **Tika no Cloud Run** (rápido e barato)
 3. Documentos com tabelas, escaneados ou layouts complexos → **Docling no GKE com GPU**
 4. O Spark no Dataproc processa ambos os outputs com estratégias de chunking diferenciadas
 5. Os embeddings são gerados em batch e indexados no Vertex AI Vector Search
-6. Assistentes de inteligência artificial consomem os vetores via RAG para suporte à tomada de decisão no controle interno
+6. Assistentes de inteligência artificial consomem os vetores via RAG para suporte à tomada de decisão em análises institucionais
 
-Essa abordagem híbrida captura o melhor dos dois mundos: a escala e o custo do Tika para documentos simples, e a precisão semântica do Docling para os documentos complexos que são o core do trabalho de inteligência da CGE-MT.
+Essa abordagem híbrida captura o melhor dos dois mundos: a escala e o custo do Tika para documentos simples, e a precisão semântica do Docling para os documentos complexos que são o core do trabalho de inteligência de dados.
 
 Em ambientes onde a qualidade do RAG é crítica — como análise de contratos públicos, detecção de irregularidades em prestações de contas ou cruzamento de dados de auditorias — o investimento no Docling se paga na precisão das respostas geradas pelos LLMs. Embeddings ruins geram respostas ruins, independente de qual modelo de linguagem está na ponta.
 
