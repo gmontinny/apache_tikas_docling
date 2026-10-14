@@ -1,0 +1,5 @@
+tika==2.6.0
+docling==2.31.0
+psycopg2-binary==2.9.10
+python-dotenv==1.1.0
+huggingface_hub[hf_xet]
